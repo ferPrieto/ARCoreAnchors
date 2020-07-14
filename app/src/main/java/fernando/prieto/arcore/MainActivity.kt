@@ -3,9 +3,8 @@ package fernando.prieto.arcore
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import fernando.prieto.arcore.arcore.helpers.CameraPermissionHelper
-import fernando.prieto.arcore.arcore.helpers.FullScreenHelper
-
+import fernando.prieto.ar_core.helpers.CameraPermissionHelper
+import fernando.prieto.ar_core.helpers.FullScreenHelper
 
 class MainActivity : AppCompatActivity() {
 

@@ -19,29 +19,28 @@ import com.google.ar.core.exceptions.UnavailableArcoreNotInstalledException
 import com.google.ar.core.exceptions.UnavailableSdkTooOldException
 import com.google.common.base.Preconditions
 import com.google.firebase.database.DatabaseError
-import fernando.prieto.arcore.arcore.helpers.CameraPermissionHelper
-import fernando.prieto.arcore.arcore.helpers.DisplayRotationHelper
-import fernando.prieto.arcore.arcore.helpers.SnackbarHelper
-import fernando.prieto.arcore.arcore.helpers.TrackingStateHelper
-import fernando.prieto.arcore.arcore.managers.CloudAnchorManager
-import fernando.prieto.arcore.arcore.managers.FirebaseManager
-import fernando.prieto.arcore.arcore.rendering.BackgroundRenderer
-import fernando.prieto.arcore.arcore.rendering.ObjectRenderer
-import fernando.prieto.arcore.arcore.rendering.PlaneRenderer
-import fernando.prieto.arcore.arcore.rendering.PointCloudRenderer
+import fernando.prieto.ar_core.helpers.CameraPermissionHelper
+import fernando.prieto.ar_core.helpers.DisplayRotationHelper
+import fernando.prieto.ar_core.helpers.SnackbarHelper
+import fernando.prieto.ar_core.helpers.TrackingStateHelper
+import fernando.prieto.ar_core.managers.CloudAnchorManager
+import fernando.prieto.ar_core.managers.FirebaseManager
+import fernando.prieto.ar_core.rendering.BackgroundRenderer
+import fernando.prieto.ar_core.rendering.ObjectRenderer
+import fernando.prieto.ar_core.rendering.PlaneRenderer
+import fernando.prieto.ar_core.rendering.PointCloudRenderer
 import kotlinx.android.synthetic.main.fragment_camera.*
 import java.io.IOException
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
 private const val TAG = "FirstFragment"
-private const val PREFERENCE_FILE_KEY = "allow_sharing_images"
-private const val ALLOW_SHARE_IMAGES_KEY = "ALLOW_SHARE_IMAGES"
 private val OBJECT_COLOR = floatArrayOf(139.0f, 195.0f, 74.0f, 255.0f)
 
 class FirstFragment : Fragment(), GLSurfaceView.Renderer,
     CloudAnchorManager.CloudAnchorHostListener,
-    FirebaseManager.RoomCodeListener, CloudAnchorManager.CloudAnchorResolveListener {
+    FirebaseManager.RoomCodeListener,
+    CloudAnchorManager.CloudAnchorResolveListener {
 
     private val singleTapLock = Object()
     private val anchorLock = Object()
@@ -53,11 +52,16 @@ class FirstFragment : Fragment(), GLSurfaceView.Renderer,
     private var anchor: Anchor? = null
 
     // Rendering. The Renderers are created here, and initialized when the GL surface is created.
-    private val backgroundRenderer = BackgroundRenderer()
-    private val virtualObject: ObjectRenderer = ObjectRenderer()
-    private val virtualObjectShadow: ObjectRenderer = ObjectRenderer()
-    private val planeRenderer: PlaneRenderer = PlaneRenderer()
-    private val pointCloudRenderer: PointCloudRenderer = PointCloudRenderer()
+    private val backgroundRenderer =
+        BackgroundRenderer()
+    private val virtualObject: ObjectRenderer =
+        ObjectRenderer()
+    private val virtualObjectShadow: ObjectRenderer =
+        ObjectRenderer()
+    private val planeRenderer: PlaneRenderer =
+        PlaneRenderer()
+    private val pointCloudRenderer: PointCloudRenderer =
+        PointCloudRenderer()
 
     // Helpers
     private lateinit var trackingStateHelper: TrackingStateHelper
@@ -156,8 +160,13 @@ class FirstFragment : Fragment(), GLSurfaceView.Renderer,
                     InstallStatus.INSTALLED -> {
                     }
                 }
-                if (!CameraPermissionHelper.hasCameraPermission(activity)) {
-                    CameraPermissionHelper.requestCameraPermission(activity)
+                if (!CameraPermissionHelper.hasCameraPermission(
+                        activity
+                    )
+                ) {
+                    CameraPermissionHelper.requestCameraPermission(
+                        activity
+                    )
                     return
                 }
                 session = Session(context)

@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package fernando.prieto.arcore.arcore.rendering;
+package fernando.prieto.ar_core.rendering;
 
 import android.content.Context;
 import android.opengl.GLES11Ext;
@@ -23,6 +23,7 @@ import androidx.annotation.NonNull;
 
 import com.google.ar.core.Coordinates2d;
 import com.google.ar.core.Frame;
+import com.google.ar.core.Session;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;

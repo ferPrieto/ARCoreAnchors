@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package fernando.prieto.arcore.arcore.managers;
+package fernando.prieto.ar_core.managers;
 
 import android.content.Context;
 import android.util.Log;
@@ -102,7 +102,7 @@ public class FirebaseManager {
      * Gets a new room code from the Firebase Database. Invokes the listener method when a new room
      * code is available.
      */
-    public void getNewRoomCode(RoomCodeListener listener) {
+    public void getNewRoomCode(final RoomCodeListener listener) {
         Preconditions.checkNotNull(app, "Firebase App was null");
         roomCodeRef.runTransaction(
                 new Transaction.Handler() {
@@ -145,7 +145,7 @@ public class FirebaseManager {
      * Registers a new listener for the given room code. The listener is invoked whenever the data for
      * the room code is changed.
      */
-    public void registerNewListenerForRoom(Long roomCode, CloudAnchorIdListener listener) {
+    public void registerNewListenerForRoom(Long roomCode, final CloudAnchorIdListener listener) {
         Preconditions.checkNotNull(app, "Firebase App was null");
         clearRoomListener();
         currentRoomRef = hotspotListRef.child(String.valueOf(roomCode));

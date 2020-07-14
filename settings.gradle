@@ -1,2 +1,3 @@
+include ':ar-core'
 include ':app'
 rootProject.name = "ArCoreAnchors"
