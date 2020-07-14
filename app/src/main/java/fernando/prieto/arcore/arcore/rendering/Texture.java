@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package fernando.prieto.arcore.common.rendering;
+package fernando.prieto.arcore.arcore.rendering;
 
 import android.media.Image;
 import android.opengl.GLES20;

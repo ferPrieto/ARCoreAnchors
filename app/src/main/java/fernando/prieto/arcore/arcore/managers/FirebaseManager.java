@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package fernando.prieto.arcore.common.managers;
+package fernando.prieto.arcore.arcore.managers;
 
 import android.content.Context;
 import android.util.Log;

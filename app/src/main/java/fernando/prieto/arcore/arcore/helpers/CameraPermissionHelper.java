@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package fernando.prieto.arcore.common.helpers;
+package fernando.prieto.arcore.arcore.helpers;
 
 import android.Manifest;
 import android.app.Activity;

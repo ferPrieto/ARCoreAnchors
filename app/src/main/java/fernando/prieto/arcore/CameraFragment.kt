@@ -19,16 +19,16 @@ import com.google.ar.core.exceptions.UnavailableArcoreNotInstalledException
 import com.google.ar.core.exceptions.UnavailableSdkTooOldException
 import com.google.common.base.Preconditions
 import com.google.firebase.database.DatabaseError
-import fernando.prieto.arcore.common.helpers.CameraPermissionHelper
-import fernando.prieto.arcore.common.helpers.DisplayRotationHelper
-import fernando.prieto.arcore.common.helpers.SnackbarHelper
-import fernando.prieto.arcore.common.helpers.TrackingStateHelper
-import fernando.prieto.arcore.common.managers.CloudAnchorManager
-import fernando.prieto.arcore.common.managers.FirebaseManager
-import fernando.prieto.arcore.common.rendering.BackgroundRenderer
-import fernando.prieto.arcore.common.rendering.ObjectRenderer
-import fernando.prieto.arcore.common.rendering.PlaneRenderer
-import fernando.prieto.arcore.common.rendering.PointCloudRenderer
+import fernando.prieto.arcore.arcore.helpers.CameraPermissionHelper
+import fernando.prieto.arcore.arcore.helpers.DisplayRotationHelper
+import fernando.prieto.arcore.arcore.helpers.SnackbarHelper
+import fernando.prieto.arcore.arcore.helpers.TrackingStateHelper
+import fernando.prieto.arcore.arcore.managers.CloudAnchorManager
+import fernando.prieto.arcore.arcore.managers.FirebaseManager
+import fernando.prieto.arcore.arcore.rendering.BackgroundRenderer
+import fernando.prieto.arcore.arcore.rendering.ObjectRenderer
+import fernando.prieto.arcore.arcore.rendering.PlaneRenderer
+import fernando.prieto.arcore.arcore.rendering.PointCloudRenderer
 import kotlinx.android.synthetic.main.fragment_camera.*
 import java.io.IOException
 import javax.microedition.khronos.egl.EGLConfig
@@ -180,20 +180,17 @@ class FirstFragment : Fragment(), GLSurfaceView.Renderer,
                 return
             }
 
-            // Create default config and check if supported.
-            val config = Config(session)
-            config.cloudAnchorMode = CloudAnchorMode.ENABLED
-            session?.configure(config)
-
-            // Setting the session in the HostManager.
+            Config(session).apply {
+                cloudAnchorMode = CloudAnchorMode.ENABLED
+                session?.configure(this)
+            }
             cloudManager.setSession(session)
         }
 
-        // Note that order matters - see the note in onPause(), the reverse applies here.
         try {
             session?.resume()
         } catch (e: CameraNotAvailableException) {
-            //snackbarHelper.showError(this, getString(R.string.snackbar_camera_unavailable))
+            snackbarHelper.showError(activity, getString(R.string.snackbar_camera_unavailable))
             session = null
             return
         }
@@ -209,6 +206,7 @@ class FirstFragment : Fragment(), GLSurfaceView.Renderer,
                     }
                     return true
                 }
+
                 override fun onDown(e: MotionEvent) = true
             })
     }
@@ -375,17 +373,14 @@ class FirstFragment : Fragment(), GLSurfaceView.Renderer,
         )
         roomCode = newRoomCode
         snackbarHelper.showMessageWithDismiss(
-            activity, getString(R.string.snackbar_room_code_available)
+            activity,
+            getString(R.string.snackbar_room_code_available)
         )
         checkAndMaybeShare()
     }
 
     override fun onError(error: DatabaseError) {
-        Log.w(
-            TAG,
-            "A Firebase database error happened.",
-            error.toException()
-        )
+        Log.w(TAG, "A Firebase database error happened.", error.toException())
         snackbarHelper.showError(
             activity, getString(R.string.snackbar_firebase_error)
         )
@@ -414,14 +409,15 @@ class FirstFragment : Fragment(), GLSurfaceView.Renderer,
         }
         firebaseManager.storeAnchorIdInRoom(roomCode, cloudAnchorId)
         snackbarHelper.showMessageWithDismiss(
-            activity, getString(R.string.snackbar_cloud_id_shared)
+            activity,
+            getString(R.string.snackbar_cloud_id_shared)
         )
     }
 
     /** Sets the new value of the current anchor. Detaches the old anchor, if it was non-null.  */
     private fun setNewAnchor(newAnchor: Anchor?) {
         synchronized(anchorLock) {
-            anchor?.let { it.detach() }
+            anchor?.detach()
             anchor = newAnchor
         }
     }
@@ -438,12 +434,14 @@ class FirstFragment : Fragment(), GLSurfaceView.Renderer,
                         + cloudState
             )
             snackbarHelper.showMessageWithDismiss(
-                activity, getString(R.string.snackbar_resolve_error, cloudState)
+                activity,
+                getString(R.string.snackbar_resolve_error, cloudState)
             )
             return
         }
         snackbarHelper.showMessageWithDismiss(
-            activity, getString(R.string.snackbar_resolve_success)
+            activity,
+            getString(R.string.snackbar_resolve_success)
         )
         setNewAnchor(anchor)
     }

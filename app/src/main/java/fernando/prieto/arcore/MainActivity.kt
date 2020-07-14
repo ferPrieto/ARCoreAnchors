@@ -1,16 +1,10 @@
 package fernando.prieto.arcore
 
 import android.os.Bundle
-import android.os.Handler
-import android.view.Menu
-import android.view.MenuItem
-import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.google.ar.core.ArCoreApk
-import fernando.prieto.arcore.common.helpers.CameraPermissionHelper
-import fernando.prieto.arcore.common.helpers.FullScreenHelper
-import kotlinx.android.synthetic.main.activity_main.*
+import fernando.prieto.arcore.arcore.helpers.CameraPermissionHelper
+import fernando.prieto.arcore.arcore.helpers.FullScreenHelper
 
 
 class MainActivity : AppCompatActivity() {
