@@ -37,7 +37,7 @@ import javax.microedition.khronos.opengles.GL10
 private const val TAG = "FirstFragment"
 private val OBJECT_COLOR = floatArrayOf(139.0f, 195.0f, 74.0f, 255.0f)
 
-class FirstFragment : Fragment(), GLSurfaceView.Renderer,
+class CameraFragment : Fragment(), GLSurfaceView.Renderer,
     CloudAnchorManager.CloudAnchorHostListener,
     FirebaseManager.RoomCodeListener,
     CloudAnchorManager.CloudAnchorResolveListener {
