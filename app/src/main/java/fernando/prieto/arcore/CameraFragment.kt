@@ -1,7 +1,5 @@
 package fernando.prieto.arcore
 
-import android.content.Context
-import android.content.SharedPreferences
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.os.Bundle
@@ -11,7 +9,6 @@ import android.util.Log
 import android.view.*
 import android.view.GestureDetector.SimpleOnGestureListener
 import androidx.annotation.GuardedBy
-import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import com.google.ar.core.*
@@ -23,8 +20,6 @@ import com.google.ar.core.exceptions.UnavailableArcoreNotInstalledException
 import com.google.ar.core.exceptions.UnavailableSdkTooOldException
 import com.google.common.base.Preconditions
 import com.google.firebase.database.DatabaseError
-import fernando.prieto.arcore.common.dialog.PrivacyNoticeDialogFragment
-import fernando.prieto.arcore.common.dialog.ResolveDialogFragment
 import fernando.prieto.arcore.common.helpers.CameraPermissionHelper
 import fernando.prieto.arcore.common.helpers.DisplayRotationHelper
 import fernando.prieto.arcore.common.helpers.SnackbarHelper
@@ -35,7 +30,7 @@ import fernando.prieto.arcore.common.rendering.BackgroundRenderer
 import fernando.prieto.arcore.common.rendering.ObjectRenderer
 import fernando.prieto.arcore.common.rendering.PlaneRenderer
 import fernando.prieto.arcore.common.rendering.PointCloudRenderer
-import kotlinx.android.synthetic.main.fragment_first.*
+import kotlinx.android.synthetic.main.fragment_camera.*
 import java.io.IOException
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
@@ -47,8 +42,7 @@ private val OBJECT_COLOR = floatArrayOf(139.0f, 195.0f, 74.0f, 255.0f)
 
 class FirstFragment : Fragment(), GLSurfaceView.Renderer,
     CloudAnchorManager.CloudAnchorHostListener,
-    FirebaseManager.RoomCodeListener, CloudAnchorManager.CloudAnchorResolveListener,
-    PrivacyNoticeDialogFragment.NoticeDialogListener {
+    FirebaseManager.RoomCodeListener, CloudAnchorManager.CloudAnchorResolveListener {
 
     private val singleTapLock = Object()
     private val anchorLock = Object()
@@ -80,99 +74,47 @@ class FirstFragment : Fragment(), GLSurfaceView.Renderer,
     private val viewMatrix = FloatArray(16)
     private val projectionMatrix = FloatArray(16)
 
-    private var currentMode: HostResolveMode = HostResolveMode.NONE
-
     private lateinit var gestureDetector: GestureDetector
 
     private var session: Session? = null
     private var roomCode: Long? = null
     private var cloudAnchorId: String? = null
     private var installRequested = false
-    private var sharedPreferences: SharedPreferences? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         displayRotationHelper = DisplayRotationHelper(context)
-        initializeCloudAnchor()
+        firebaseManager = FirebaseManager(context)
 
-        return inflater.inflate(R.layout.fragment_first, container, false)
+        return inflater.inflate(R.layout.fragment_camera, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        maybeEnableArButton()
+        initialiseTextView()
         setupGestureDetector()
         setupGLSurface()
-        initialiseSharedPreferences()
         installRequested = false
     }
 
-    private fun initialiseSharedPreferences() {
-        sharedPreferences = activity?.getSharedPreferences(
-            PREFERENCE_FILE_KEY,
-            Context.MODE_PRIVATE
-        )
-    }
-
-    private fun maybeEnableArButton() {
+    private fun initialiseTextView() {
         ArCoreApk.getInstance().checkAvailability(context).let { availability ->
             if (availability.isTransient) {
-                Handler().postDelayed({ maybeEnableArButton() }, 200)
+                Handler().postDelayed({ initialiseTextView() }, 200)
             }
             if (availability.isSupported) {
-                arButton.isVisible = true
-                arButton.isEnabled = true
-                arButton.setOnClickListener { onResolveButtonPress() }
+                arSupported.text = getString(R.string.camera_text_ar_supported)
             } else {
-                arButton.isVisible = false
-                arButton.isEnabled = false
+                arSupported.text = getString(R.string.camera_text_ar_not_supported)
             }
         }
     }
-
-    private fun initializeCloudAnchor() {
-        firebaseManager = FirebaseManager(context)
-        currentMode = HostResolveMode.HOSTING
-    }
-
-    /** Callback function invoked when the Resolve Button is pressed.  */
-    private fun onResolveButtonPress() {
-        if (currentMode == HostResolveMode.RESOLVING) {
-            resetMode()
-            return
-        }
-        allowedShareImages().let { allowed ->
-            if (allowed) {
-                showNoticeDialog(PrivacyNoticeDialogFragment.HostResolveListener { onPrivacyAcceptedForResolve() })
-            } else {
-                onPrivacyAcceptedForResolve()
-            }
-        }
-    }
-
-    private fun showNoticeDialog(listener: PrivacyNoticeDialogFragment.HostResolveListener?) {
-        val dialog: DialogFragment = PrivacyNoticeDialogFragment.createDialog(listener)
-        activity?.supportFragmentManager?.let { fragmentManager ->
-            dialog.show(
-                fragmentManager,
-                PrivacyNoticeDialogFragment::class.java.name
-            )
-        }
-    }
-
-    private fun allowedShareImages() =
-        sharedPreferences?.getBoolean(ALLOW_SHARE_IMAGES_KEY, false) ?: false
 
     override fun onResume() {
         super.onResume()
-        /* allowedShareImages().let { allowed ->
-             if (allowed) {
-                 createSession()
-             }
-         }*/
         createSession()
 
         surfaceView.onResume()
@@ -201,8 +143,6 @@ class FirstFragment : Fragment(), GLSurfaceView.Renderer,
                     InstallStatus.INSTALLED -> {
                     }
                 }
-                // ARCore requires camera permissions to operate. If we did not yet obtain runtime
-                // permission on Android M and above, now is a good time to ask the user for it.
                 if (!CameraPermissionHelper.hasCameraPermission(activity)) {
                     CameraPermissionHelper.requestCameraPermission(activity)
                     return
@@ -215,7 +155,7 @@ class FirstFragment : Fragment(), GLSurfaceView.Renderer,
                 messageId = R.string.snackbar_arcore_too_old
                 exception = e
             } catch (e: UnavailableSdkTooOldException) {
-                // messageId = R.string.snackbar_arcore_sdk_too_old
+                messageId = R.string.snackbar_arcore_sdk_too_old
                 exception = e
             } catch (e: Exception) {
                 messageId = R.string.snackbar_arcore_exception
@@ -256,9 +196,6 @@ class FirstFragment : Fragment(), GLSurfaceView.Renderer,
             object : SimpleOnGestureListener() {
                 override fun onSingleTapUp(motionEvent: MotionEvent): Boolean {
                     synchronized(singleTapLock) {
-                        /*if (currentMode == HostResolveMode.HOSTING) {
-                            queuedSingleTap = motionEvent
-                        }*/
                         queuedSingleTap = motionEvent
                     }
                     return true
@@ -377,10 +314,6 @@ class FirstFragment : Fragment(), GLSurfaceView.Renderer,
             synchronized(anchorLock) {
                 queuedSingleTap?.let {
                     if (anchor == null && cameraTrackingState == TrackingState.TRACKING) {
-                        Preconditions.checkState(
-                            currentMode == HostResolveMode.HOSTING,
-                            "We should only be creating an anchor in hosting mode."
-                        )
                         frame.hitTest(queuedSingleTap).map { hit ->
                             if (shouldCreateAnchorWithHit(hit)) {
                                 val newAnchor = hit.createAnchor()
@@ -439,9 +372,6 @@ class FirstFragment : Fragment(), GLSurfaceView.Renderer,
             activity, getString(R.string.snackbar_room_code_available)
         )
         checkAndMaybeShare()
-        synchronized(singleTapLock) {
-            currentMode = HostResolveMode.HOSTING
-        }
     }
 
     override fun onError(error: DatabaseError) {
@@ -523,47 +453,20 @@ class FirstFragment : Fragment(), GLSurfaceView.Renderer,
 
     /** Resets the mode of the app to its initial state and removes the anchors.  */
     private fun resetMode() {
-        currentMode = HostResolveMode.NONE
         firebaseManager.clearRoomListener()
         setNewAnchor(null)
         snackbarHelper.hide(activity)
         cloudManager.clearListeners()
     }
 
-    private fun onPrivacyAcceptedForResolve() {
-        val dialogFragment = ResolveDialogFragment()
-        dialogFragment.setOkListener { roomCode: Long? -> this.onRoomCodeEntered(roomCode) }
-        dialogFragment.show(childFragmentManager, "ResolveDialog")
-    }
-
     /** Callback function invoked when the user presses the OK button in the Resolve Dialog.  */
     private fun onRoomCodeEntered(roomCode: Long?) {
-        currentMode = HostResolveMode.RESOLVING
-        snackbarHelper.showMessageWithDismiss(activity, getString(R.string.snackbar_on_resolve))
-
         firebaseManager.registerNewListenerForRoom(
             roomCode
         ) { cloudAnchorId ->
-            Preconditions.checkNotNull(
-                this,
-                "The resolve listener cannot be null."
-            )
             cloudManager.resolveCloudAnchor(
                 cloudAnchorId, this, SystemClock.uptimeMillis()
             )
         }
     }
-
-    override fun onDialogPositiveClick(dialog: DialogFragment?) {
-        sharedPreferences?.edit()?.let { editor ->
-            if (!editor.putBoolean(ALLOW_SHARE_IMAGES_KEY, true).commit()) {
-                throw AssertionError("Could not save the user preference to SharedPreferences!")
-            }
-            createSession()
-        }
-    }
-}
-
-private enum class HostResolveMode {
-    NONE, HOSTING, RESOLVING
 }
