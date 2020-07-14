@@ -9,7 +9,6 @@ import android.util.Log
 import android.view.*
 import android.view.GestureDetector.SimpleOnGestureListener
 import androidx.annotation.GuardedBy
-import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import com.google.ar.core.*
 import com.google.ar.core.ArCoreApk.InstallStatus
@@ -61,13 +60,13 @@ class FirstFragment : Fragment(), GLSurfaceView.Renderer,
     private val pointCloudRenderer: PointCloudRenderer = PointCloudRenderer()
 
     // Helpers
-    private val trackingStateHelper: TrackingStateHelper = TrackingStateHelper(activity)
+    private lateinit var trackingStateHelper: TrackingStateHelper
     private lateinit var displayRotationHelper: DisplayRotationHelper
-    private val snackbarHelper = SnackbarHelper()
+    private lateinit var snackbarHelper: SnackbarHelper
 
     // Mangers
-    private val cloudManager: CloudAnchorManager = CloudAnchorManager()
-    private var firebaseManager: FirebaseManager = FirebaseManager(context)
+    private lateinit var cloudManager: CloudAnchorManager
+    private lateinit var firebaseManager: FirebaseManager
 
     // Temporary matrices allocated here to reduce number of allocations for each frame.
     private val anchorMatrix = FloatArray(16)
@@ -85,10 +84,21 @@ class FirstFragment : Fragment(), GLSurfaceView.Renderer,
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        displayRotationHelper = DisplayRotationHelper(context)
-        firebaseManager = FirebaseManager(context)
+        initialiseHelpers()
+        initialiseManagers()
 
         return inflater.inflate(R.layout.fragment_camera, container, false)
+    }
+
+    private fun initialiseManagers() {
+        firebaseManager = FirebaseManager(context)
+        cloudManager = CloudAnchorManager()
+    }
+
+    private fun initialiseHelpers() {
+        trackingStateHelper = TrackingStateHelper(activity)
+        snackbarHelper = SnackbarHelper()
+        displayRotationHelper = DisplayRotationHelper(context)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -105,10 +115,10 @@ class FirstFragment : Fragment(), GLSurfaceView.Renderer,
             if (availability.isTransient) {
                 Handler().postDelayed({ initialiseTextView() }, 200)
             }
-            if (availability.isSupported) {
-                arSupported.text = getString(R.string.camera_text_ar_supported)
+            arSupported.text = if (availability.isSupported) {
+                getString(R.string.camera_text_ar_supported)
             } else {
-                arSupported.text = getString(R.string.camera_text_ar_not_supported)
+                getString(R.string.camera_text_ar_not_supported)
             }
         }
     }
@@ -116,13 +126,16 @@ class FirstFragment : Fragment(), GLSurfaceView.Renderer,
     override fun onResume() {
         super.onResume()
         createSession()
-
         surfaceView.onResume()
         displayRotationHelper.onResume()
     }
 
     override fun onPause() {
         super.onPause()
+        pauseSessionInvolvedElements()
+    }
+
+    private fun pauseSessionInvolvedElements() {
         session?.let { session ->
             displayRotationHelper.onPause()
             surfaceView.onPause()
@@ -161,13 +174,9 @@ class FirstFragment : Fragment(), GLSurfaceView.Renderer,
                 messageId = R.string.snackbar_arcore_exception
                 exception = e
             }
-            if (exception != null) {
+            exception?.let {
                 snackbarHelper.showError(activity, getString(messageId))
-                Log.e(
-                    TAG,
-                    "Exception creating session",
-                    exception
-                )
+                Log.e(TAG, "Exception creating session", exception)
                 return
             }
 
@@ -200,10 +209,7 @@ class FirstFragment : Fragment(), GLSurfaceView.Renderer,
                     }
                     return true
                 }
-
-                override fun onDown(e: MotionEvent): Boolean {
-                    return true
-                }
+                override fun onDown(e: MotionEvent) = true
             })
     }
 
@@ -415,9 +421,7 @@ class FirstFragment : Fragment(), GLSurfaceView.Renderer,
     /** Sets the new value of the current anchor. Detaches the old anchor, if it was non-null.  */
     private fun setNewAnchor(newAnchor: Anchor?) {
         synchronized(anchorLock) {
-            if (anchor != null) {
-                anchor!!.detach()
-            }
+            anchor?.let { it.detach() }
             anchor = newAnchor
         }
     }
