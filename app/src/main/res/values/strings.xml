@@ -29,24 +29,6 @@
     <string name="snackbar_room_code_available">The room code is now available. Please place an anchor to host.</string>
     <!-- Resolve anchor has no result yet. [CHAR_LIMIT=NONE] -->
     <string name="snackbar_resolve_no_result_yet">Still resolving the anchor. Please make sure you\'re looking at where the Cloud Anchor was hosted. Or, try to re-join the room.</string>
-
-    <!-- Strings in the Resolve Dialog Box -->
-    <string name="resolve_dialog_ok">Resolve</string>
-    <string name="resolve_dialog_title">Resolve an Anchor</string>
-    <string name="resolve_dialog_text_hint">Enter Room Code</string>
-    <string name="cancel">Cancel</string>
-
-    <!-- Strings used in privacy notice dialog messages. [CHAR_LIMIT=NONE] -->
-    <string name="share_experience_title">Experience it together</string>
-    <!-- Privacy notice message. [CHAR_LIMIT=NONE] -->
-    <string name="share_experience_message">To power this session, Google will process visual data from your camera.</string>
-    <!-- Privacy notice accept. [CHAR_LIMIT=NONE] -->
-    <string name="agree_to_share">Start now</string>
-    <!-- Privacy notice learn more. [CHAR_LIMIT=NONE] -->
-    <string name="learn_more">Learn more</string>
-    <!-- Cloud anchor privacy website. [CHAR_LIMIT=NONE] -->
-    <string name="cloud_anchor_website">https://developers.google.com/ar/cloud-anchors-privacy</string>
-
     <!-- Camera Fragment -->
     <string name="camera_text_ar_not_supported">AR Not Supported</string>
     <string name="camera_text_ar_supported">AR Supported</string>

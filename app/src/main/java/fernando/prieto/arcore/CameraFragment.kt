@@ -112,6 +112,7 @@ class CameraFragment : Fragment(), GLSurfaceView.Renderer,
         setupGestureDetector()
         setupGLSurface()
         installRequested = false
+        firebaseManager.getNewRoomCode(this)
     }
 
     private fun initialiseTextView() {
@@ -376,16 +377,9 @@ class CameraFragment : Fragment(), GLSurfaceView.Renderer,
     }
 
     override fun onNewRoomCode(newRoomCode: Long?) {
-        Preconditions.checkState(
-            roomCode == null,
-            "The room code cannot have been set before."
-        )
         roomCode = newRoomCode
-        snackbarHelper.showMessageWithDismiss(
-            activity,
-            getString(R.string.snackbar_room_code_available)
-        )
         checkAndMaybeShare()
+        onRoomCodeEntered(newRoomCode)
     }
 
     override fun onError(error: DatabaseError) {
@@ -404,9 +398,9 @@ class CameraFragment : Fragment(), GLSurfaceView.Renderer,
             )
             return
         }
-        Preconditions.checkState(
+        /*Preconditions.checkState(
             cloudAnchorId == null, "The cloud anchor ID cannot have been set before."
-        )
+        )*/
         cloudAnchorId = anchor.cloudAnchorId
         setNewAnchor(anchor)
         checkAndMaybeShare()
@@ -430,7 +424,6 @@ class CameraFragment : Fragment(), GLSurfaceView.Renderer,
             anchor = newAnchor
         }
     }
-
 
     override fun onCloudAnchorResolveTaskComplete(anchor: Anchor) {
         val cloudState = anchor.cloudAnchorState
