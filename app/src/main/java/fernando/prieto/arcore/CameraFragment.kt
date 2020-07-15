@@ -76,7 +76,6 @@ class CameraFragment : Fragment(), GLSurfaceView.Renderer,
     private val anchorMatrix = FloatArray(16)
     private val viewMatrix = FloatArray(16)
     private val projectionMatrix = FloatArray(16)
-
     private lateinit var gestureDetector: GestureDetector
 
     private var session: Session? = null
@@ -112,7 +111,7 @@ class CameraFragment : Fragment(), GLSurfaceView.Renderer,
         setupGestureDetector()
         setupGLSurface()
         installRequested = false
-        firebaseManager.getNewRoomCode(this)
+        firebaseManager.registerNewListenerForLastRoomAdded(this)
     }
 
     private fun initialiseTextView() {
@@ -271,6 +270,7 @@ class CameraFragment : Fragment(), GLSurfaceView.Renderer,
                 if (cameraTrackingState == TrackingState.PAUSED) {
                     return
                 }
+
 
                 camera.getViewMatrix(viewMatrix, 0)
                 camera.getProjectionMatrix(projectionMatrix, 0, 0.1f, 100.0f)

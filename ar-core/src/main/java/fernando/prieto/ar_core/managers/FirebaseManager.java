@@ -170,6 +170,27 @@ public class FirebaseManager {
         currentRoomRef.addValueEventListener(currentRoomListener);
     }
 
+    public void registerNewListenerForLastRoomAdded(RoomCodeListener listener) {
+        Preconditions.checkNotNull(app, "Firebase App was null");
+        roomCodeRef.runTransaction(
+                new Transaction.Handler() {
+                    @Override
+                    public Transaction.Result doTransaction(MutableData currentData) {
+                        return Transaction.success(currentData);
+                    }
+
+                    @Override
+                    public void onComplete(DatabaseError error, boolean committed, DataSnapshot currentData) {
+                        if (!committed) {
+                            listener.onError(error);
+                            return;
+                        }
+                        Long roomCode = currentData.getValue(Long.class);
+                        listener.onNewRoomCode(roomCode);
+                    }
+                });
+    }
+
     /**
      * Resets the current room listener registered using {@link #registerNewListenerForRoom(Long,
      * CloudAnchorIdListener)}.
